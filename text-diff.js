@@ -16,6 +16,31 @@ async function welcome() {
     console.log(gradient.pastel.multiline(data));
   });
 
+  await sleep();
+  console.log(`
+    ${chalk.bgBlue(' HOW TO USE ')}
+    Compare two text files and see the differences.
+    Choose your preferred diff algorithm and get colorful output!
+  `);
+}
+
+async function getFilePaths() {
+  const questions = [
+    {
+      name: 'file1',
+      type: 'input',
+      message: 'Enter the path to the first file:',
+      validate: (value) => fs.existsSync(value) || 'Please enter a valid file path',
+    },
+    {
+      name: 'file2',
+      type: 'input',
+      message: 'Enter the path to the second file:',
+      validate: (value) => fs.existsSync(value) || 'Please enter a valid file path',
+    },
+  ];
+
+  return inquirer.prompt(questions);
 }
 
 async function chooseDiffAlgorithm() {
@@ -27,6 +52,32 @@ async function chooseDiffAlgorithm() {
   };
 
   return inquirer.prompt(question);
+}
+
+function performDiff(file1Content, file2Content, algorithm) {
+  switch (algorithm) {
+    case 'Line by Line':
+      return diffLines(file1Content, file2Content);
+    case 'Word by Word':
+      return diffWords(file1Content, file2Content);
+    case 'Character by Character':
+      return diffChars(file1Content, file2Content);
+    default:
+      throw new Error('Invalid algorithm choice');
+  }
+}
+
+function displayDiff(diff) {
+  diff.forEach((part) => {
+    if (part.added) {
+      process.stdout.write(chalk.green(part.value));
+    } else if (part.removed) {
+      process.stdout.write(chalk.red(part.value));
+    } else {
+      process.stdout.write(chalk.gray(part.value));
+    }
+  });
+  console.log('\n');
 }
 
 async function run() {
