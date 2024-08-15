@@ -59,6 +59,53 @@ async function searchStock() {
       return 'AAPL';
     },
   });
+
+  const spinner = createSpinner('Searching for stock...').start();
+  await sleep(1000);
+
+  const stock = await fetchStockData(answers.stock_symbol);
+
+  if (stock) {
+    spinner.success({ text: `Found stock: ${stock.symbol}` });
+    console.log(
+      chalk.cyan(`Symbol: ${stock.symbol}
+Price: $${stock.price.toFixed(2)}
+Change: ${stock.change > 0 ? chalk.green(`+${stock.change.toFixed(2)}%`) : chalk.red(`${stock.change.toFixed(2)}%`)}`)
+    );
+  } else {
+    spinner.error({ text: `Stock not found: ${answers.stock_symbol}` });
+  }
+}
+
+async function browseStocks() {
+  const choices = [
+    'AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB'
+  ].map((symbol) => ({
+    name: `${symbol} - Company Name`,
+    value: symbol,
+  }));
+
+  const answer = await inquirer.prompt({
+    name: 'selected_stock',
+    type: 'list',
+    message: 'Select a stock to view details:',
+    choices,
+  });
+
+  const stock = await fetchStockData(answer.selected_stock);
+  if (stock) {
+    console.log(
+      chalk.cyan(`
+Symbol: ${stock.symbol}
+Price: $${stock.price.toFixed(2)}
+Change: ${stock.change > 0 ? chalk.green(`+${stock.change.toFixed(2)}%`) : chalk.red(`${stock.change.toFixed(2)}%`)}
+`)
+    );
+  } else {
+    console.log(chalk.red('Stock not found.'));
+  }
+}
+
 async function mainMenu() {
   const choices = [
     { name: 'Search for a stock', value: 'search' },
@@ -89,7 +136,6 @@ async function mainMenu() {
     await sleep(1000);
   }
 }
-
 
 async function main() {
   await welcome();
