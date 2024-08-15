@@ -7,6 +7,46 @@ import figlet from 'figlet';
 import { createSpinner } from 'nanospinner';
 import fetch from 'node-fetch';
 
+const API_URL = 'https://api.quotable.io/random';
+
+function sleep(ms = 2000) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function welcome() {
+  console.clear();
+  const title = figlet.textSync('Random Quote\nGenerator', {
+    font: 'ANSI Shadow',
+    horizontalLayout: 'default',
+    verticalLayout: 'default',
+    width: 80,
+    whitespaceBreak: true
+  });
+
+  console.log(gradient.pastel.multiline(title));
+
+  const rainbowTitle = chalkAnimation.rainbow(
+    'Get ready for some inspirational quotes!'
+  );
+  await sleep(2000);
+  rainbowTitle.stop();
+
+  console.log(`
+    ${chalk.bgBlue('HOW TO USE')}
+    I will fetch a random quote from an API.
+    If you like it, you can save it.
+    If not, you can get another one.
+
+    ${chalk.bgRed('Let\'s begin!')}
+  `);
+}
+
+async function getRandomQuote() {
+  const response = await fetch(API_URL);
+  const data = await response.json();
+  return { text: data.content, author: data.author };
+}
+
 async function displayQuote(quote) {
   console.log('\n');
   console.log(chalk.cyan('Here\'s your quote:'));
@@ -36,6 +76,18 @@ async function askToSave(quote) {
     console.log(chalk.green(`Quote by ${quote.author} has been saved.`));
   }
 }
+
+async function askToContinue() {
+  const answer = await inquirer.prompt({
+    name: 'continue',
+    type: 'confirm',
+    message: 'Do you want to see another quote?',
+    default: true,
+  });
+
+  return answer.continue;
+}
+
 async function main() {
   await welcome();
 
