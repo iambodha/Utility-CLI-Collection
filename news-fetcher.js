@@ -16,6 +16,11 @@ async function welcome() {
   await sleep();
   rainbowTitle.stop();
 
+  console.log(`
+    ${chalk.bgBlue('HOW IT WORKS')}
+    I will fetch news articles based on your preferences.
+    Select a category, and I'll show you the latest news!
+  `);
 }
 
 async function askName() {
@@ -29,6 +34,64 @@ async function askName() {
   });
 
   return answers.user_name;
+}
+
+async function askCategory() {
+  const answers = await inquirer.prompt({
+    name: 'category',
+    type: 'list',
+    message: 'Which news category are you interested in?',
+    choices: [
+      'General',
+      'Business',
+      'Technology',
+      'Science',
+      'Health',
+      'Sports',
+      'Entertainment',
+    ],
+  });
+
+  return answers.category.toLowerCase();
+}
+
+async function fetchNews(category) {
+  const apiKey = 'YOUR_API_KEY_HERE';
+  const url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${apiKey}`;
+
+  const spinner = createSpinner('Fetching news...').start();
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    spinner.success({ text: 'News fetched successfully!' });
+    return data.articles;
+  } catch (error) {
+    spinner.error({ text: 'Failed to fetch news. Please try again.' });
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+function displayNews(articles) {
+  console.log('\n');
+  articles.forEach((article, index) => {
+    console.log(
+      gradient.pastel(`${index + 1}. ${chalk.bold(article.title)}`)
+    );
+    console.log(chalk.dim(article.description));
+    console.log(chalk.blue.underline(article.url));
+    console.log('\n');
+  });
+}
+
+async function askForMoreNews() {
+  const answer = await inquirer.prompt({
+    name: 'more_news',
+    type: 'confirm',
+    message: 'Would you like to fetch news from another category?',
+  });
+
+  return answer.more_news;
 }
 
 async function main() {
