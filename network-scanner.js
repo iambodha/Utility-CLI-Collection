@@ -62,3 +62,61 @@ async function scanNetwork(baseIP) {
   spinner.success({ text: 'Scan complete!' });
   return devices;
 }
+
+async function displayResults(devices) {
+  console.log(chalk.green('\nDevices found:'));
+  devices.forEach((device, index) => {
+    console.log(chalk.yellow(`${index + 1}. IP: ${device.ip}, Hostname: ${device.hostname}`));
+  });
+}
+
+async function chooseAction() {
+  const answers = await inquirer.prompt({
+    name: 'action',
+    type: 'list',
+    message: 'What would you like to do?',
+    choices: [
+      'Scan network',
+      'View last scan results',
+      'Exit',
+    ],
+  });
+
+  return answers.action;
+}
+
+async function main() {
+  await welcome();
+  let devices = [];
+
+  while (true) {
+    const action = await chooseAction();
+
+    if (action === 'Scan network') {
+      const localIP = await getLocalIP();
+      const baseIP = localIP.substring(0, localIP.lastIndexOf('.') + 1);
+      const rainbow = chalkAnimation.rainbow('Starting network scan...');
+      await sleep(1000);
+      rainbow.stop();
+
+      devices = await scanNetwork(baseIP);
+      await displayResults(devices);
+    } else if (action === 'View last scan results') {
+      if (devices.length === 0) {
+        console.log(chalk.red('No scan results available. Please perform a scan first.'));
+      } else {
+        await displayResults(devices);
+      }
+    } else {
+      console.log(chalk.blue('Thank you for using the Network Scanner CLI!'));
+      process.exit(0);
+    }
+
+    await sleep(1000);
+  }
+}
+
+main().catch((error) => {
+  console.error(chalk.red('An error occurred:'), error);
+  process.exit(1);
+});
