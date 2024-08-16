@@ -77,6 +77,36 @@ const compressPDF = async (file) => {
   return outputPath;
 };
 
+const welcome = async () => {
+  const title = 'PDF Tool CLI';
+  figlet(title, (err, data) => {
+    console.log(gradient.pastel.multiline(data));
+  });
+
+  await sleep();
+  console.log(
+    chalk.green(
+      `Welcome to the ${chalk.bold('PDF Tool CLI')}! Let's manipulate some PDFs!\n`
+    )
+  );
+};
+
+const askForOperation = async () => {
+  const answers = await inquirer.prompt({
+    name: 'operation',
+    type: 'list',
+    message: 'What would you like to do?',
+    choices: [
+      'Merge PDFs',
+      'Split PDF',
+      'Compress PDF',
+      'Exit',
+    ],
+  });
+
+  return answers.operation;
+};
+
 const askForFiles = async (message) => {
   const answers = await inquirer.prompt({
     name: 'files',
@@ -97,6 +127,40 @@ const askForPages = async () => {
   });
 
   return answers.pages.split(',').map(p => parseInt(p.trim()));
+};
+
+const handleMergePDFs = async () => {
+  const files = await askForFiles('Enter the PDF files to merge (comma-separated):');
+  const spinner = createSpinner('Merging PDFs...').start();
+  try {
+    const result = await mergePDFs(files);
+    spinner.success({ text: `PDFs merged successfully! Output: ${result}` });
+  } catch (error) {
+    spinner.error({ text: `Failed to merge PDFs: ${error.message}` });
+  }
+};
+
+const handleSplitPDF = async () => {
+  const [file] = await askForFiles('Enter the PDF file to split:');
+  const pages = await askForPages();
+  const spinner = createSpinner('Splitting PDF...').start();
+  try {
+    const result = await splitPDF(file, pages);
+    spinner.success({ text: `PDF split successfully! Outputs: ${result.join(', ')}` });
+  } catch (error) {
+    spinner.error({ text: `Failed to split PDF: ${error.message}` });
+  }
+};
+
+const handleCompressPDF = async () => {
+  const [file] = await askForFiles('Enter the PDF file to compress:');
+  const spinner = createSpinner('Compressing PDF...').start();
+  try {
+    const result = await compressPDF(file);
+    spinner.success({ text: `PDF compressed successfully! Output: ${result}` });
+  } catch (error) {
+    spinner.error({ text: `Failed to compress PDF: ${error.message}` });
+  }
 };
 
 const main = async () => {
