@@ -20,6 +20,28 @@ function displayTitle() {
 }
 
 
+async function loadJsonFile() {
+    const answers = await inquirer.prompt([
+        {
+            name: 'filePath',
+            type: 'input',
+            message: 'Enter the path to the JSON file:',
+            default() {
+                return './sample.json';
+            },
+        },
+    ]);
+
+    try {
+        const data = fs.readFileSync(answers.filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error(chalk.red('Error reading the file.'));
+        process.exit(1);
+    }
+}
+
+
 async function queryJson(data) {
     const { key } = await inquirer.prompt([
         {
@@ -33,6 +55,50 @@ async function queryJson(data) {
         console.log(chalk.green(`Value: ${JSON.stringify(data[key], null, 2)}`));
     } else {
         console.log(chalk.red('Key not found.'));
+    }
+}
+
+
+async function editJson(data) {
+    const { key, value } = await inquirer.prompt([
+        {
+            name: 'key',
+            type: 'input',
+            message: 'Enter the key to edit/add:',
+        },
+        {
+            name: 'value',
+            type: 'input',
+            message: 'Enter the new value (as a string):',
+        },
+    ]);
+
+    try {
+        data[key] = JSON.parse(value);
+        console.log(chalk.green('Data updated successfully!'));
+    } catch (err) {
+        console.log(chalk.red('Invalid JSON value.'));
+    }
+}
+
+
+async function saveJsonFile(data) {
+    const { filePath } = await inquirer.prompt([
+        {
+            name: 'filePath',
+            type: 'input',
+            message: 'Enter the path to save the JSON file:',
+            default() {
+                return './output.json';
+            },
+        },
+    ]);
+
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+        console.log(chalk.green(`File saved successfully to ${filePath}`));
+    } catch (err) {
+        console.error(chalk.red('Error saving the file.'));
     }
 }
 
@@ -51,6 +117,14 @@ async function mainMenu(data) {
         case 'Query JSON':
             await queryJson(data);
             break;
+        case 'Edit JSON':
+            await editJson(data);
+            break;
+        case 'Save JSON':
+            await saveJsonFile(data);
+            break;
+        case 'Exit':
+            process.exit(0);
     }
 
     await mainMenu(data);
