@@ -27,6 +27,90 @@ async function welcome() {
   );
 }
 
+async function getNotes() {
+  try {
+    const data = await fs.readFile(dataFile, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    return [];
+  }
+}
+
+async function saveNotes(notes) {
+  await fs.writeFile(dataFile, JSON.stringify(notes, null, 2));
+}
+
+async function addNote() {
+  const { title, content } = await inquirer.prompt([
+    { name: 'title', message: 'Enter note title:' },
+    { name: 'content', message: 'Enter note content:' },
+  ]);
+
+  const spinner = createSpinner('Adding note...').start();
+  await sleep(1000);
+
+  const notes = await getNotes();
+  notes.push({ title, content, createdAt: new Date().toISOString() });
+  await saveNotes(notes);
+
+  spinner.success({ text: 'Note added successfully!' });
+}
+
+async function viewNotes() {
+  const notes = await getNotes();
+
+  if (notes.length === 0) {
+    console.log(chalk.yellow('No notes found.'));
+    return;
+  }
+
+  const { noteIndex } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'noteIndex',
+      message: 'Select a note to view:',
+      choices: notes.map((note, index) => ({
+        name: `${index + 1}. ${note.title}`,
+        value: index,
+      })),
+    },
+  ]);
+
+  const selectedNote = notes[noteIndex];
+  console.log(chalk.blue('\nTitle:'), selectedNote.title);
+  console.log(chalk.blue('Content:'), selectedNote.content);
+  console.log(chalk.blue('Created at:'), selectedNote.createdAt);
+}
+
+async function deleteNote() {
+  const notes = await getNotes();
+
+  if (notes.length === 0) {
+    console.log(chalk.yellow('No notes to delete.'));
+    return;
+  }
+
+  const { noteIndex } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'noteIndex',
+      message: 'Select a note to delete:',
+      choices: notes.map((note, index) => ({
+        name: `${index + 1}. ${note.title}`,
+        value: index,
+      })),
+    },
+  ]);
+
+  const spinner = createSpinner('Deleting note...').start();
+  await sleep(1000);
+
+  notes.splice(noteIndex, 1);
+  await saveNotes(notes);
+
+  spinner.success({ text: 'Note deleted successfully!' });
+}
+
 async function main() {
   await welcome();
 
