@@ -65,3 +65,61 @@ function transformPhrase(phrase) {
     return transformations[lowerChar] || char;
   }).join('');
 }
+
+async function generatePassword(options) {
+  const spinner = createSpinner('Generating your password...').start();
+  await sleep(1500);
+
+  let password;
+  switch (options.algorithm) {
+    case 'Standard':
+      password = generateStandardPassword(
+        options.length,
+        options.uppercase,
+        options.lowercase,
+        options.numbers,
+        options.special
+      );
+      break;
+    case 'XKCD Style':
+      password = generateXKCDPassword(options.words);
+      break;
+    case 'PIN':
+      password = generatePINPassword(options.length);
+      break;
+    case 'Phrase Transformation':
+      password = transformPhrase(options.phrase);
+      break;
+  }
+
+  spinner.success({ text: 'Password generated successfully!' });
+  return password;
+}
+
+async function main() {
+  await welcome();
+  const options = await getPasswordOptions();
+  const password = await generatePassword(options);
+
+  console.log('\nYour generated password is:');
+  const rainbow = chalkAnimation.rainbow(password);
+  await sleep(2000);
+  rainbow.stop();
+
+  console.log(chalk.green('\nPassword strength:'));
+  if (options.algorithm === 'Standard' && options.length >= 12 && options.uppercase && options.lowercase && options.numbers && options.special) {
+    console.log(chalk.green('Strong - Good job!'));
+  } else if (options.algorithm === 'XKCD Style' && options.words >= 4) {
+    console.log(chalk.green('Strong - Good job!'));
+  } else if (options.algorithm === 'PIN' && options.length >= 6) {
+    console.log(chalk.yellow('Moderate - Consider using a longer PIN or a different algorithm for sensitive accounts.'));
+  } else if (options.algorithm === 'Phrase Transformation' && password.length >= 12) {
+    console.log(chalk.green('Strong - Good job!'));
+  } else {
+    console.log(chalk.red('Weak - Consider increasing length or complexity.'));
+  }
+}
+
+main().catch((error) => {
+  console.error(chalk.red('An error occurred:'), error);
+});
