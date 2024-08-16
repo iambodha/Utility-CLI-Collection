@@ -47,6 +47,13 @@ function generateXKCDPassword(words) {
     .join('-');
 }
 
+function generatePINPassword(length) {
+  return Array(length)
+    .fill(null)
+    .map(() => Math.floor(Math.random() * 10))
+    .join('');
+}
+
 function transformPhrase(phrase) {
   const transformations = {
     'a': '@',
@@ -64,6 +71,68 @@ function transformPhrase(phrase) {
     const lowerChar = char.toLowerCase();
     return transformations[lowerChar] || char;
   }).join('');
+}
+
+async function getPasswordOptions() {
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'algorithm',
+      message: 'Choose a password generation algorithm:',
+      choices: ['Standard', 'XKCD Style', 'PIN', 'Phrase Transformation'],
+    },
+    {
+      type: 'number',
+      name: 'length',
+      message: 'Enter password length:',
+      default: 12,
+      when: (answers) => answers.algorithm === 'Standard' || answers.algorithm === 'PIN',
+    },
+    {
+      type: 'number',
+      name: 'words',
+      message: 'Enter number of words:',
+      default: 4,
+      when: (answers) => answers.algorithm === 'XKCD Style',
+    },
+    {
+      type: 'input',
+      name: 'phrase',
+      message: 'Enter a phrase to transform:',
+      when: (answers) => answers.algorithm === 'Phrase Transformation',
+      validate: (input) => input.length > 0 || 'Please enter a phrase',
+    },
+    {
+      type: 'confirm',
+      name: 'uppercase',
+      message: 'Include uppercase letters?',
+      default: true,
+      when: (answers) => answers.algorithm === 'Standard',
+    },
+    {
+      type: 'confirm',
+      name: 'lowercase',
+      message: 'Include lowercase letters?',
+      default: true,
+      when: (answers) => answers.algorithm === 'Standard',
+    },
+    {
+      type: 'confirm',
+      name: 'numbers',
+      message: 'Include numbers?',
+      default: true,
+      when: (answers) => answers.algorithm === 'Standard',
+    },
+    {
+      type: 'confirm',
+      name: 'special',
+      message: 'Include special characters?',
+      default: true,
+      when: (answers) => answers.algorithm === 'Standard',
+    },
+  ]);
+
+  return answers;
 }
 
 async function generatePassword(options) {
