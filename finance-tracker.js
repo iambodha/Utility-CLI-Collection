@@ -58,3 +58,67 @@ function viewTransactions(start = 0, limit = 10) {
     );
   });
 }
+
+async function browseTransactions() {
+  let start = 0;
+  const limit = 5;
+
+  while (true) {
+    viewTransactions(start, limit);
+    showBalance();
+
+    const { action } = await inquirer.prompt({
+      type: 'list',
+      name: 'action',
+      message: 'What would you like to do?',
+      choices: [
+        { name: 'Next Page', value: 'next', disabled: start + limit >= transactions.length },
+        { name: 'Previous Page', value: 'prev', disabled: start === 0 },
+        { name: 'Back to Main Menu', value: 'back' },
+      ],
+    });
+
+    if (action === 'next') {
+      start += limit;
+    } else if (action === 'prev') {
+      start = Math.max(0, start - limit);
+    } else {
+      break;
+    }
+  }
+}
+
+async function mainMenu() {
+  const choices = [
+    'Add Transaction',
+    'Browse Transactions',
+    'Show Balance',
+    'Exit',
+  ];
+
+  while (true) {
+    const { action } = await inquirer.prompt({
+      type: 'list',
+      name: 'action',
+      message: 'What would you like to do?',
+      choices,
+    });
+
+    switch (action) {
+      case 'Add Transaction':
+        await addTransaction();
+        break;
+      case 'Browse Transactions':
+        await browseTransactions();
+        break;
+      case 'Show Balance':
+        showBalance();
+        break;
+      case 'Exit':
+        console.log(chalk.yellow('Thank you for using Finance Tracker CLI!'));
+        return;
+    }
+
+    await sleep(1000);
+  }
+}
