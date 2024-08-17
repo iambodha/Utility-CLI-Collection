@@ -48,6 +48,27 @@ function getBranches() {
   }
 }
 
+function visualizeCommits(commits) {
+  console.log(chalk.blue('\nCommit History:\n'));
+  commits.forEach((commit, index) => {
+    const coloredHash = chalk.yellow(commit.hash);
+    const coloredSubject = chalk.green(commit.subject);
+    const coloredAuthor = chalk.cyan(commit.author);
+    const coloredDate = chalk.magenta(commit.date);
+
+    console.log(`${chalk.blue('●')} ${coloredHash} - ${coloredSubject}`);
+    console.log(`  ${chalk.gray('Author:')} ${coloredAuthor}`);
+    console.log(`  ${chalk.gray('Date:')} ${coloredDate}`);
+    if (commit.body) {
+      console.log(`  ${chalk.gray('Message:')} ${chalk.white(commit.body)}`);
+    }
+
+    if (index < commits.length - 1) {
+      console.log(chalk.blue('│'));
+    }
+  });
+}
+
 async function getCommitLimit() {
   const answer = await inquirer.prompt({
     name: 'limit',
@@ -61,6 +82,42 @@ async function getCommitLimit() {
   });
 
   return parseInt(answer.limit);
+}
+
+async function selectBranch(branches) {
+  const answer = await inquirer.prompt({
+    name: 'branch',
+    type: 'list',
+    message: 'Which branch would you like to visualize?',
+    choices: ['HEAD', ...branches],
+  });
+
+  return answer.branch;
+}
+
+async function selectVisualizationOptions() {
+  const answer = await inquirer.prompt({
+    name: 'options',
+    type: 'checkbox',
+    message: 'Select additional information to display:',
+    choices: [
+      { name: 'Show commit message body', value: 'body', checked: false },
+      { name: 'Show branch graph', value: 'graph', checked: false },
+    ],
+  });
+
+  return answer.options;
+}
+
+function visualizeBranchGraph(branch) {
+  try {
+    const command = `git log --graph --oneline --decorate --all -n 20`;
+    const output = execSync(command).toString().trim();
+    console.log(chalk.blue('\nBranch Graph:\n'));
+    console.log(chalk.white(output));
+  } catch (error) {
+    console.error(chalk.red('Error: Unable to generate branch graph.'));
+  }
 }
 
 async function main() {
@@ -99,14 +156,6 @@ async function main() {
   rainbowTitle.stop();
 }
 
-function visualizeCommits(commits) {
-  console.log(chalk.blue('\nCommit History:\n'));
-  commits.forEach((commit, index) => {
-    const coloredHash = chalk.yellow(commit.hash);
-    const coloredSubject = chalk.green(commit.subject);
-    const coloredAuthor = chalk.cyan(commit.author);
-    const coloredDate = chalk.magenta(commit.date);
-    
 main().catch((error) => {
   console.error(chalk.red('An error occurred:'), error);
   process.exit(1);
