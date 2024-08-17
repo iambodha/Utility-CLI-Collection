@@ -48,6 +48,44 @@ async function welcome() {
   );
 }
 
+async function addTransaction() {
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'type',
+      message: 'What type of transaction is this?',
+      choices: ['Income', 'Expense'],
+    },
+    {
+      type: 'input',
+      name: 'amount',
+      message: 'Enter the amount:',
+      validate: (value) => !isNaN(parseFloat(value)) || 'Please enter a number',
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: 'Enter a description for this transaction:',
+    },
+  ]);
+
+  const spinner = createSpinner('Adding transaction...').start();
+  await sleep(1000);
+
+  const amount = parseFloat(answers.amount);
+  transactions.push({
+    type: answers.type,
+    amount: amount,
+    description: answers.description,
+    date: new Date().toISOString(),
+  });
+
+  balance += answers.type === 'Income' ? amount : -amount;
+
+  await saveData();
+  spinner.success({ text: 'Transaction added successfully!' });
+}
+
 function viewTransactions(start = 0, limit = 10) {
   console.log(chalk.blue.bold('\nYour Transactions:'));
   const end = Math.min(start + limit, transactions.length);
@@ -57,6 +95,11 @@ function viewTransactions(start = 0, limit = 10) {
       color(`${start + index + 1}. ${t.type}: $${t.amount.toFixed(2)} - ${t.description} (${new Date(t.date).toLocaleDateString()})`)
     );
   });
+}
+
+function showBalance() {
+  const color = balance >= 0 ? chalk.green : chalk.red;
+  console.log(color(`\nCurrent Balance: $${balance.toFixed(2)}`));
 }
 
 async function browseTransactions() {
@@ -122,3 +165,13 @@ async function mainMenu() {
     await sleep(1000);
   }
 }
+
+async function main() {
+  await loadData();
+  await welcome();
+  await mainMenu();
+}
+
+main().catch((error) => {
+  console.error(chalk.red('An error occurred:'), error);
+});
