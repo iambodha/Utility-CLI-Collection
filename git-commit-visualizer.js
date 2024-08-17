@@ -13,6 +13,54 @@ async function welcome() {
   figlet(title, (err, data) => {
     console.log(gradient.pastel.multiline(data));
   });
+
+  await sleep();
+  console.log(
+    chalk.green(
+      `Welcome to the ${chalk.bold('Git Commit Visualizer')}!\nLet's explore your Git history in style!\n`
+    )
+  );
+}
+
+function getGitLog(limit = 10, branch = 'HEAD') {
+  try {
+    const command = `git log ${branch} -n ${limit} --pretty=format:"%h|%s|%an|%ar|%b"`;
+    const output = execSync(command).toString().trim();
+    return output.split('\n\n').map(commit => {
+      const [hash, subject, author, date, ...bodyParts] = commit.split('|');
+      const body = bodyParts.join('|').trim();
+      return { hash, subject, author, date, body };
+    });
+  } catch (error) {
+    console.error(chalk.red("Error: Unable to fetch Git log. Make sure you're in a Git repository."));
+    process.exit(1);
+  }
+}
+
+function getBranches() {
+  try {
+    const command = 'git branch';
+    const output = execSync(command).toString().trim();
+    return output.split('\n').map(branch => branch.replace('* ', '').trim());
+  } catch (error) {
+    console.error(chalk.red('Error: Unable to fetch Git branches.'));
+    process.exit(1);
+  }
+}
+
+async function getCommitLimit() {
+  const answer = await inquirer.prompt({
+    name: 'limit',
+    type: 'input',
+    message: 'How many commits would you like to visualize?',
+    default: '10',
+    validate: (input) => {
+      const num = parseInt(input);
+      return !isNaN(num) && num > 0 ? true : 'Please enter a valid positive number.';
+    },
+  });
+
+  return parseInt(answer.limit);
 }
 
 async function main() {
@@ -51,6 +99,14 @@ async function main() {
   rainbowTitle.stop();
 }
 
+function visualizeCommits(commits) {
+  console.log(chalk.blue('\nCommit History:\n'));
+  commits.forEach((commit, index) => {
+    const coloredHash = chalk.yellow(commit.hash);
+    const coloredSubject = chalk.green(commit.subject);
+    const coloredAuthor = chalk.cyan(commit.author);
+    const coloredDate = chalk.magenta(commit.date);
+    
 main().catch((error) => {
   console.error(chalk.red('An error occurred:'), error);
   process.exit(1);
