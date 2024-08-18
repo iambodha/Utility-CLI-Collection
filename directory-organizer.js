@@ -25,6 +25,36 @@ async function welcome() {
     `);
 }
 
+async function askOptions() {
+    const answers = await inquirer.prompt({
+        name: 'action',
+        type: 'list',
+        message: 'What do you want to do?',
+        choices: [
+            'Organize Files by Extension',
+            'Organize Files by Type',
+            'Exit'
+        ],
+    });
+
+    return handleAnswer(answers.action);
+}
+
+async function handleAnswer(action) {
+    switch (action) {
+        case 'Organize Files by Extension':
+            await organizeFiles('extension');
+            break;
+        case 'Organize Files by Type':
+            await organizeFiles('type');
+            break;
+        case 'Exit':
+            console.log(chalk.green('Goodbye!'));
+            process.exit(0);
+            break;
+    }
+}
+
 async function organizeFiles(method) {
     const spinner = createSpinner('Organizing files...').start();
     await sleep();
@@ -55,3 +85,35 @@ async function organizeFiles(method) {
 
     spinner.success({ text: 'Files have been organized successfully!' });
 }
+
+function getFileType(file) {
+    const ext = path.extname(file).substring(1);
+    const fileTypes = {
+        images: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+        documents: ['pdf', 'doc', 'docx', 'txt'],
+        videos: ['mp4', 'avi', 'mkv'],
+        music: ['mp3', 'wav', 'aac'],
+        archives: ['zip', 'rar', 'tar', 'gz'],
+        code: ['js', 'html', 'css', 'py', 'java', 'c', 'cpp', 'ts'],
+    };
+
+    for (const [type, extensions] of Object.entries(fileTypes)) {
+        if (extensions.includes(ext)) {
+            return type;
+        }
+    }
+
+    return 'others';
+}
+
+async function start() {
+    console.clear();
+    figlet('Dir Organizer', (err, data) => {
+        console.log(gradient.pastel.multiline(data) + '\n');
+    });
+
+    await welcome();
+    await askOptions();
+}
+
+start();
