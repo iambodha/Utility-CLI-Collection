@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 
+import fs from 'fs';
+import readline from 'readline';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import gradient from 'gradient-string';
+import chalkAnimation from 'chalk-animation';
 import figlet from 'figlet';
+import { createSpinner } from 'nanospinner';
+import { parse, stringify } from 'csv';
 
 function displayWelcome() {
     console.clear();
@@ -62,3 +67,47 @@ async function editCSV(data) {
 
     console.log(chalk.green(`Row ${rowIndex} has been updated.`));
 }
+
+async function saveCSVFile(data) {
+    const { filePath } = await inquirer.prompt([
+        {
+            type: 'input',
+            name: 'filePath',
+            message: 'Enter the file path to save the CSV:',
+            default: 'output.csv'
+        }
+    ]);
+
+    const spinner = createSpinner('Saving CSV...').start();
+    try {
+        await saveCSV(filePath, data);
+        spinner.success({ text: `CSV saved successfully to ${filePath}.` });
+    } catch (error) {
+        spinner.error({ text: `Failed to save CSV: ${error.message}` });
+    }
+}
+
+async function main() {
+    displayWelcome();
+
+    const { filePath } = await inquirer.prompt([
+        {
+            type: 'input',
+            name: 'filePath',
+            message: 'Enter the path to the CSV file:',
+            default: 'data.csv'
+        }
+    ]);
+
+    const spinner = createSpinner('Loading CSV...').start();
+    try {
+        const data = await loadCSV(filePath);
+        spinner.success({ text: 'CSV loaded successfully!' });
+        await mainMenu(data);
+    } catch (error) {
+        spinner.error({ text: `Failed to load CSV: ${error.message}` });
+        process.exit(1);
+    }
+}
+
+main();
