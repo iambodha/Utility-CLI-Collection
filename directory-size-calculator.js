@@ -26,6 +26,50 @@ async function welcome() {
   `);
 }
 
+async function askForDirectory() {
+  const answers = await inquirer.prompt({
+    name: 'directory_path',
+    type: 'input',
+    message: 'Enter the path of the directory you want to analyze:',
+    default() {
+      return '.';
+    },
+  });
+
+  return answers.directory_path;
+}
+
+function getDirectorySize(directoryPath) {
+  let totalSize = 0;
+
+  function calculateSize(itemPath) {
+    const stats = fs.statSync(itemPath);
+
+    if (stats.isFile()) {
+      totalSize += stats.size;
+    } else if (stats.isDirectory()) {
+      const files = fs.readdirSync(itemPath);
+      files.forEach(file => calculateSize(path.join(itemPath, file)));
+    }
+  }
+
+  calculateSize(directoryPath);
+  return totalSize;
+}
+
+function formatSize(bytes) {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+
+  return `${size.toFixed(2)} ${units[unitIndex]}`;
+}
+
 async function calculateAndDisplaySize(directoryPath) {
   const spinner = createSpinner('Calculating directory size...').start();
   await sleep(1500);
@@ -63,3 +107,11 @@ function displayDirectoryContents(directoryPath, depth = 0) {
     }
   });
 }
+
+async function main() {
+  await welcome();
+  const directoryPath = await askForDirectory();
+  await calculateAndDisplaySize(directoryPath);
+}
+
+main().catch(console.error);
