@@ -23,6 +23,50 @@ async function welcome() {
   `);
 }
 
+const algorithms = [
+  'aes-256-cbc',
+  'aes-192-cbc',
+  'aes-128-cbc',
+  'des-ede3-cbc',
+  'camellia-256-cbc',
+  'aria-256-cbc',
+];
+
+async function askQuestions() {
+  const questions = [
+    {
+      type: 'list',
+      name: 'operation',
+      message: 'What do you want to do?',
+      choices: ['Encrypt', 'Decrypt'],
+    },
+    {
+      type: 'input',
+      name: 'inputFile',
+      message: 'Enter the name of the input file:',
+    },
+    {
+      type: 'input',
+      name: 'outputFile',
+      message: 'Enter the name of the output file:',
+    },
+    {
+      type: 'password',
+      name: 'password',
+      message: 'Enter the encryption/decryption password:',
+      mask: '*',
+    },
+    {
+      type: 'list',
+      name: 'algorithm',
+      message: 'Choose an encryption algorithm:',
+      choices: algorithms,
+    },
+  ];
+
+  return inquirer.prompt(questions);
+}
+
 function encryptFile(inputFile, outputFile, password, algorithm) {
   const spinner = createSpinner('Encrypting file...').start();
 
@@ -37,6 +81,26 @@ function encryptFile(inputFile, outputFile, password, algorithm) {
     fs.writeFileSync(outputFile, encrypted);
 
     spinner.success({ text: chalk.green('File encrypted successfully!') });
+  } catch (error) {
+    spinner.error({ text: chalk.red(`Error: ${error.message}`) });
+  }
+}
+
+function decryptFile(inputFile, outputFile, password, algorithm) {
+  const spinner = createSpinner('Decrypting file...').start();
+
+  try {
+    const input = fs.readFileSync(inputFile);
+    const key = crypto.scryptSync(password, 'salt', 32);
+    const iv = input.slice(0, 16);
+    const encryptedData = input.slice(16);
+
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    const decrypted = Buffer.concat([decipher.update(encryptedData), decipher.final()]);
+
+    fs.writeFileSync(outputFile, decrypted);
+
+    spinner.success({ text: chalk.green('File decrypted successfully!') });
   } catch (error) {
     spinner.error({ text: chalk.red(`Error: ${error.message}`) });
   }
