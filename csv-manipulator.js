@@ -16,6 +16,69 @@ function displayWelcome() {
     console.log(gradient.pastel.multiline(figlet.textSync(msg)));
 }
 
+function loadCSV(filePath) {
+    return new Promise((resolve, reject) => {
+        const data = [];
+        fs.createReadStream(filePath)
+            .pipe(parse({ columns: true }))
+            .on('data', (row) => data.push(row))
+            .on('end', () => resolve(data))
+            .on('error', (error) => reject(error));
+    });
+}
+
+function saveCSV(filePath, data) {
+    return new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(filePath);
+        stringify(data, { header: true })
+            .pipe(output)
+            .on('finish', resolve)
+            .on('error', reject);
+    });
+}
+
+function displayCSV(data) {
+    console.log(chalk.greenBright('CSV Data:'));
+    console.table(data);
+}
+
+async function mainMenu(data) {
+    const choices = [
+        'View CSV',
+        'Query CSV',
+        'Edit CSV',
+        'Save CSV',
+        'Exit'
+    ];
+
+    const { action } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'action',
+            message: 'What would you like to do?',
+            choices
+        }
+    ]);
+
+    switch (action) {
+        case 'View CSV':
+            displayCSV(data);
+            break;
+        case 'Query CSV':
+            await queryCSV(data);
+            break;
+        case 'Edit CSV':
+            await editCSV(data);
+            break;
+        case 'Save CSV':
+            await saveCSVFile(data);
+            break;
+        case 'Exit':
+            process.exit(0);
+    }
+    await mainMenu(data);
+}
+
 async function queryCSV(data) {
     const { column } = await inquirer.prompt([
         {
