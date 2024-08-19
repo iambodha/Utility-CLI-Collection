@@ -54,3 +54,66 @@ const mainMenu = async () => {
 
     return action;
 };
+
+const searchCheatsheet = async () => {
+    const { query } = await inquirer.prompt({
+        name: 'query',
+        type: 'input',
+        message: 'Enter search term:'
+    });
+
+    const cheatsheets = loadCheatsheets();
+
+    const results = Object.entries(cheatsheets).filter(([name, content]) =>
+        name.includes(query) || content.includes(query)
+    );
+
+    if (results.length > 0) {
+        console.log(chalk.yellow('Search results:'));
+        results.forEach(([name, content]) => {
+            console.log(chalk.blue(`\n${name}:`));
+            console.log(chalk.gray(content));
+        });
+    } else {
+        console.log(chalk.red('No matching cheatsheets found!'));
+    }
+};
+
+const run = async () => {
+    await showWelcome();
+
+    let exit = false;
+    while (!exit) {
+        const action = await mainMenu();
+
+        switch (action) {
+            case gradient.pastel('View all cheatsheets'):
+                await viewCheatsheets();
+                break;
+            case gradient.pastel('Add a new cheatsheet'):
+                await addCheatsheet();
+                break;
+            case gradient.pastel('Remove a cheatsheet'):
+                await removeCheatsheet();
+                break;
+            case gradient.pastel('Search cheatsheets'):
+                await searchCheatsheet();
+                break;
+            case gradient.pastel('Exit'):
+                exit = true;
+                break;
+        }
+
+        if (!exit) {
+            await inquirer.prompt({
+                name: 'continue',
+                type: 'input',
+                message: 'Press Enter to return to the main menu.'
+            });
+        }
+    }
+
+    console.log(chalk.green.bold('Goodbye!'));
+};
+
+run();
