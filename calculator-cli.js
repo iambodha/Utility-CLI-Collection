@@ -66,3 +66,57 @@ async function askNumbers() {
 
   return [numbers.num1, numbers.num2];
 }
+
+async function calculate(operation, num1, num2) {
+  const spinner = createSpinner('Calculating...').start();
+  await sleep(1000);
+
+  let result;
+  switch (operation) {
+    case 'Addition':
+      result = num1 + num2;
+      break;
+    case 'Subtraction':
+      result = num1 - num2;
+      break;
+    case 'Multiplication':
+      result = num1 * num2;
+      break;
+    case 'Division':
+      if (num2 === 0) {
+        spinner.error({ text: chalk.red('Error: Division by zero!') });
+        return;
+      }
+      result = num1 / num2;
+      break;
+  }
+
+  spinner.success({ text: `The result is: ${chalk.green(result)}` });
+  
+  const rainbow = chalkAnimation.rainbow('Thanks for using the Calculator CLI!');
+  await sleep(2000);
+  rainbow.stop();
+}
+
+async function main() {
+  await welcome();
+  
+  while (true) {
+    const operation = await askOperation();
+    
+    if (operation === 'Exit') {
+      console.log(chalk.yellow('Thank you for using the Calculator CLI. Goodbye!'));
+      process.exit(0);
+    }
+    
+    const [num1, num2] = await askNumbers();
+    await calculate(operation, num1, num2);
+    
+    console.log('\n');
+  }
+}
+
+main().catch((error) => {
+  console.error('An error occurred:', error);
+  process.exit(1);
+});
