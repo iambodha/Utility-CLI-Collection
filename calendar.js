@@ -20,6 +20,28 @@ async function loadEvents() {
   }
 }
 
+async function askEvent() {
+  const answers = await inquirer.prompt([
+    {
+      name: 'title',
+      type: 'input',
+      message: 'Enter event title:',
+    },
+    {
+      name: 'description',
+      type: 'input',
+      message: 'Enter event description:',
+    },
+    {
+      name: 'time',
+      type: 'input',
+      message: 'Enter event time (HH:MM):',
+    },
+  ]);
+
+  return answers;
+}
+
 async function welcome() {
   const title = 'Calendar CLI';
   figlet(title, (err, data) => {
@@ -47,3 +69,36 @@ async function askDate() {
 
   return answers.date;
 }
+
+async function main() {
+  await welcome();
+
+  while (true) {
+    const action = await inquirer.prompt({
+      name: 'action',
+      type: 'list',
+      message: 'What would you like to do?',
+      choices: ['Add Event', 'View Events', 'Exit'],
+    });
+
+    if (action.action === 'Exit') {
+      console.log(chalk.green('Thank you for using Calendar CLI!'));
+      break;
+    }
+
+    const date = await askDate();
+
+    if (action.action === 'Add Event') {
+      const event = await askEvent();
+      await addEvent(date, event);
+    } else if (action.action === 'View Events') {
+      await viewEvents(date);
+    }
+
+    await sleep(1000);
+  }
+}
+
+main().catch((error) => {
+  console.error(chalk.red('An error occurred:', error));
+});
