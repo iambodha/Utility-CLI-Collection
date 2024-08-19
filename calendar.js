@@ -1,7 +1,9 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import gradient from 'gradient-string';
+import chalkAnimation from 'chalk-animation';
 import figlet from 'figlet';
+import { createSpinner } from 'nanospinner';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -20,26 +22,8 @@ async function loadEvents() {
   }
 }
 
-async function askEvent() {
-  const answers = await inquirer.prompt([
-    {
-      name: 'title',
-      type: 'input',
-      message: 'Enter event title:',
-    },
-    {
-      name: 'description',
-      type: 'input',
-      message: 'Enter event description:',
-    },
-    {
-      name: 'time',
-      type: 'input',
-      message: 'Enter event time (HH:MM):',
-    },
-  ]);
-
-  return answers;
+async function saveEvents(events) {
+  await fs.writeFile(DATA_FILE, JSON.stringify(events, null, 2));
 }
 
 async function welcome() {
@@ -68,6 +52,81 @@ async function askDate() {
   });
 
   return answers.date;
+}
+
+async function askEvent() {
+  const answers = await inquirer.prompt([
+    {
+      name: 'title',
+      type: 'input',
+      message: 'Enter event title:',
+    },
+    {
+      name: 'description',
+      type: 'input',
+      message: 'Enter event description:',
+    },
+    {
+      name: 'time',
+      type: 'input',
+      message: 'Enter event time (HH:MM):',
+    },
+  ]);
+
+  return answers;
+}
+
+async function addEvent(date, event) {
+  const spinner = createSpinner('Adding event...').start();
+  await sleep(1000);
+
+  try {
+    const events = await loadEvents();
+    if (!events[date]) {
+      events[date] = [];
+    }
+    events[date].push(event);
+    await saveEvents(events);
+
+    spinner.success({ text: 'Event added successfully!' });
+    console.log(
+      chalk.yellow(`Event: ${event.title}
+      Date: ${date}
+      Time: ${event.time}
+      Description: ${event.description}`)
+    );
+  } catch (error) {
+    spinner.error({ text: 'Failed to add event.' });
+    console.error(chalk.red('Error:', error.message));
+  }
+}
+
+async function viewEvents(date) {
+  const spinner = createSpinner('Fetching events...').start();
+  await sleep(1000);
+
+  try {
+    const events = await loadEvents();
+    const dateEvents = events[date] || [];
+
+    spinner.success({ text: 'Events fetched successfully!' });
+    console.log(chalk.cyan(`Events for ${date}:`));
+
+    if (dateEvents.length === 0) {
+      console.log(chalk.yellow('No events scheduled for this date.'));
+    } else {
+      dateEvents.forEach((event, index) => {
+        console.log(
+          chalk.yellow(`${index + 1}. ${event.title}
+          Time: ${event.time}
+          Description: ${event.description}`)
+        );
+      });
+    }
+  } catch (error) {
+    spinner.error({ text: 'Failed to fetch events.' });
+    console.error(chalk.red('Error:', error.message));
+  }
 }
 
 async function main() {
