@@ -55,6 +55,61 @@ const mainMenu = async () => {
     return action;
 };
 
+const addCheatsheet = async () => {
+    const { name } = await inquirer.prompt({
+        name: 'name',
+        type: 'input',
+        message: 'Enter a name for the new cheatsheet:'
+    });
+
+    const { content } = await inquirer.prompt({
+        name: 'content',
+        type: 'editor',
+        message: 'Enter the content of the cheatsheet:'
+    });
+
+    const spinner = createSpinner('Saving cheatsheet...').start();
+
+    const cheatsheets = loadCheatsheets();
+    cheatsheets[name] = content;
+    saveCheatsheets(cheatsheets);
+
+    spinner.success({ text: chalk.green('Cheatsheet saved successfully!') });
+};
+
+const viewCheatsheets = async () => {
+    const cheatsheets = loadCheatsheets();
+
+    if (Object.keys(cheatsheets).length === 0) {
+        console.log(chalk.red('No cheatsheets available!'));
+        return;
+    }
+
+    console.log(chalk.yellow('Your cheatsheets:'));
+    for (const [name, content] of Object.entries(cheatsheets)) {
+        console.log(chalk.blue(`\n${name}:`));
+        console.log(chalk.gray(content));
+    }
+};
+
+const removeCheatsheet = async () => {
+    const cheatsheets = loadCheatsheets();
+
+    const { name } = await inquirer.prompt({
+        name: 'name',
+        type: 'list',
+        message: 'Which cheatsheet would you like to remove?',
+        choices: Object.keys(cheatsheets)
+    });
+
+    const spinner = createSpinner('Removing cheatsheet...').start();
+
+    delete cheatsheets[name];
+    saveCheatsheets(cheatsheets);
+
+    spinner.success({ text: chalk.green('Cheatsheet removed successfully!') });
+};
+
 const searchCheatsheet = async () => {
     const { query } = await inquirer.prompt({
         name: 'query',
