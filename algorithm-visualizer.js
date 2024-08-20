@@ -64,6 +64,23 @@ const insertionSort = (arr) => {
     return { sorted: arr, iterations };
 };
 
+const selectionSort = (arr) => {
+    let iterations = 0;
+    for (let i = 0; i < arr.length; i++) {
+        let min = i;
+        for (let j = i + 1; j < arr.length; j++) {
+            iterations++;
+            if (arr[j] < arr[min]) {
+                min = j;
+            }
+        }
+        if (min !== i) {
+            [arr[i], arr[min]] = [arr[min], arr[i]];
+        }
+    }
+    return { sorted: arr, iterations };
+};
+
 const mergeSort = (arr) => {
     let iterations = 0;
     const merge = (left, right) => {
@@ -183,39 +200,90 @@ const radixSort = (arr) => {
         return max;
     };
 
-    const bucketSort = (arr) => {
-        let iterations = 0;
-        const n = arr.length;
-        const min = Math.min(...arr);
-        const max = Math.max(...arr);
-        const range = (max - min) / n;
-        const buckets = Array.from({ length: n }, () => []);
-    
-        for (let i = 0; i < n; i++) {
-            const bucketIndex = Math.floor((arr[i] - min) / range);
-            if (bucketIndex === n) {
-                buckets[n - 1].push(arr[i]);
-            } else {
-                buckets[bucketIndex].push(arr[i]);
-            }
+    const countSort = (arr, exp) => {
+        const output = new Array(arr.length).fill(0);
+        const count = new Array(10).fill(0);
+
+        for (let i = 0; i < arr.length; i++) {
+            count[Math.floor(arr[i] / exp) % 10]++;
             iterations++;
         }
-    
-        for (let i = 0; i < n; i++) {
-            buckets[i].sort((a, b) => a - b);
-            iterations += buckets[i].length;
+
+        for (let i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+            iterations++;
         }
-    
-        let index = 0;
-        for (let i = 0; i < n; i++) {
-            for (let j = 0; j < buckets[i].length; j++) {
-                arr[index++] = buckets[i][j];
+
+        for (let i = arr.length - 1; i >= 0; i--) {
+            output[count[Math.floor(arr[i] / exp) % 10] - 1] = arr[i];
+            count[Math.floor(arr[i] / exp) % 10]--;
+            iterations++;
+        }
+
+        for (let i = 0; i < arr.length; i++) {
+            arr[i] = output[i];
+            iterations++;
+        }
+    };
+
+    const max = getMax(arr);
+    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
+        countSort(arr, exp);
+    }
+
+    return { sorted: arr, iterations };
+};
+
+const bucketSort = (arr) => {
+    let iterations = 0;
+    const n = arr.length;
+    const min = Math.min(...arr);
+    const max = Math.max(...arr);
+    const range = (max - min) / n;
+    const buckets = Array.from({ length: n }, () => []);
+
+    for (let i = 0; i < n; i++) {
+        const bucketIndex = Math.floor((arr[i] - min) / range);
+        if (bucketIndex === n) {
+            buckets[n - 1].push(arr[i]);
+        } else {
+            buckets[bucketIndex].push(arr[i]);
+        }
+        iterations++;
+    }
+
+    for (let i = 0; i < n; i++) {
+        buckets[i].sort((a, b) => a - b);
+        iterations += buckets[i].length;
+    }
+
+    let index = 0;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < buckets[i].length; j++) {
+            arr[index++] = buckets[i][j];
+            iterations++;
+        }
+    }
+
+    return { sorted: arr, iterations };
+};
+
+const shellSort = (arr) => {
+    let iterations = 0;
+    const n = arr.length;
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+        for (let i = gap; i < n; i++) {
+            const temp = arr[i];
+            let j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap) {
+                arr[j] = arr[j - gap];
                 iterations++;
             }
+            arr[j] = temp;
         }
-    
-        return { sorted: arr, iterations };
-    };
+    }
+    return { sorted: arr, iterations };
+};
 
 const combSort = (arr) => {
     let iterations = 0;
@@ -243,7 +311,6 @@ const combSort = (arr) => {
     return { sorted: arr, iterations };
 };
 
-// Searching Algortihms
 const linearSearch = (arr, target) => {
     let iterations = 0;
     for (let i = 0; i < arr.length; i++) {
