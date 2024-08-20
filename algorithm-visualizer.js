@@ -21,6 +21,34 @@ const bubbleSort = (arr) => {
     return { sorted: arr, iterations };
 };
 
+const quickSort = (arr) => {
+    let iterations = 0;
+    const sort = (arr, low, high) => {
+        if (low < high) {
+            let pi = partition(arr, low, high);
+            sort(arr, low, pi - 1);
+            sort(arr, pi + 1, high);
+        }
+    };
+
+    const partition = (arr, low, high) => {
+        let pivot = arr[high];
+        let i = low - 1;
+        for (let j = low; j < high; j++) {
+            iterations++;
+            if (arr[j] < pivot) {
+                i++;
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+        [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+        return i + 1;
+    };
+
+    sort(arr, 0, arr.length - 1);
+    return { sorted: arr, iterations };
+};
+
 const insertionSort = (arr) => {
     let iterations = 0;
     for (let i = 1; i < arr.length; i++) {
@@ -35,6 +63,39 @@ const insertionSort = (arr) => {
     }
     return { sorted: arr, iterations };
 };
+
+// Searching Algortihms
+const linearSearch = (arr, target) => {
+    let iterations = 0;
+    for (let i = 0; i < arr.length; i++) {
+        iterations++;
+        if (arr[i] === target) {
+            return { found: true, index: i, iterations };
+        }
+    }
+    return { found: false, index: -1, iterations };
+};
+
+const binarySearch = (arr, target) => {
+    let iterations = 0;
+    let left = 0;
+    let right = arr.length - 1;
+
+    while (left <= right) {
+        iterations++;
+        const mid = Math.floor((left + right) / 2);
+        if (arr[mid] === target) {
+            return { found: true, index: mid, iterations };
+        }
+        if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return { found: false, index: -1, iterations };
+};
+
 const sleep = (ms = 2000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const welcome = async () => {
