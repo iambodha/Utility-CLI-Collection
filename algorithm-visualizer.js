@@ -68,6 +68,61 @@ const generateRandomArray = (size) => {
     return Array.from({ length: size }, () => Math.floor(Math.random() * 1000)).sort((a, b) => a - b);
 };
 
+const generateRandomArray = (size) => {
+    return Array.from({ length: size }, () => Math.floor(Math.random() * 1000)).sort((a, b) => a - b);
+};
+
+const displayDataSample = (data) => {
+    const sampleSize = Math.min(20, data.length);
+    console.log(chalk.yellow('\nSample of generated data:'));
+    console.log(chalk.cyan(data.slice(0, sampleSize).join(', ') + (data.length > sampleSize ? ', ...' : '')));
+    console.log(chalk.yellow(`\nData range: ${data[0]} to ${data[data.length - 1]}`));
+    console.log(chalk.yellow(`Total elements: ${data.length}`));
+};
+
+
+const visualizeSortingAlgorithm = async (algorithmName, data) => {
+    const spinner = createSpinner('Sorting...').start();
+    const startTime = process.hrtime();
+    const startMemory = process.memoryUsage().heapUsed;
+
+    const algorithm = sortingAlgorithms[algorithmName];
+    const result = algorithm([...data]);
+
+    const endTime = process.hrtime(startTime);
+    const endMemory = process.memoryUsage().heapUsed;
+    spinner.success({ text: 'Sorting completed!' });
+
+    return {
+        name: algorithmName,
+        time: `${endTime[0]}s ${(endTime[1] / 1000000).toFixed(3)}ms`,
+        iterations: result.iterations,
+        memory: `${((endMemory - startMemory) / 1024 / 1024).toFixed(2)} MB`
+    };
+};
+
+const visualizeSearchingAlgorithm = async (algorithmName, data, target) => {
+    const spinner = createSpinner('Searching...').start();
+    const startTime = process.hrtime();
+    const startMemory = process.memoryUsage().heapUsed;
+
+    const algorithm = searchingAlgorithms[algorithmName];
+    const result = algorithm([...data], target);
+
+    const endTime = process.hrtime(startTime);
+    const endMemory = process.memoryUsage().heapUsed;
+    spinner.success({ text: 'Searching completed!' });
+
+    return {
+        name: algorithmName,
+        time: `${endTime[0]}s ${(endTime[1] / 1000000).toFixed(3)}ms`,
+        iterations: result.iterations,
+        memory: `${((endMemory - startMemory) / 1024 / 1024).toFixed(2)} MB`,
+        found: result.found,
+        index: result.index
+    };
+};
+
 const main = async () => {
     await welcome();
     const algorithmType = await getAlgorithmType();
