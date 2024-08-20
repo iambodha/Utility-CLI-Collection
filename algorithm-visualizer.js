@@ -6,6 +6,35 @@ import figlet from 'figlet';
 import { createSpinner } from 'nanospinner';
 import Table from 'cli-table3';
 
+// Sorting algorithms
+const bubbleSort = (arr) => {
+    let iterations = 0;
+    const n = arr.length;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            iterations++;
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+        }
+    }
+    return { sorted: arr, iterations };
+};
+
+const insertionSort = (arr) => {
+    let iterations = 0;
+    for (let i = 1; i < arr.length; i++) {
+        let key = arr[i];
+        let j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            iterations++;
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }
+    return { sorted: arr, iterations };
+};
 const sleep = (ms = 2000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const welcome = async () => {
@@ -22,12 +51,24 @@ This tool allows you to visualize and compare various sorting and searching algo
 
 const sortingAlgorithms = {
     'Bubble Sort': bubbleSort,
-    'Quick Sort': quickSort
+    'Quick Sort': quickSort,
+    'Insertion Sort': insertionSort,
+    'Selection Sort': selectionSort,
+    'Merge Sort': mergeSort,
+    'Heap Sort': heapSort,
+    'Counting Sort': countingSort,
+    'Radix Sort': radixSort,
+    'Bucket Sort': bucketSort,
+    'Shell Sort': shellSort,
+    'Comb Sort': combSort
 };
 
 const searchingAlgorithms = {
     'Linear Search': linearSearch,
-    'Binary Search': binarySearch
+    'Binary Search': binarySearch,
+    'Jump Search': jumpSearch,
+    'Interpolation Search': interpolationSearch,
+    'Exponential Search': exponentialSearch
 };
 
 const getAlgorithmType = async () => {
@@ -62,10 +103,6 @@ const getDataSize = async () => {
         },
     });
     return parseInt(answer.size);
-};
-
-const generateRandomArray = (size) => {
-    return Array.from({ length: size }, () => Math.floor(Math.random() * 1000)).sort((a, b) => a - b);
 };
 
 const generateRandomArray = (size) => {
@@ -121,6 +158,38 @@ const visualizeSearchingAlgorithm = async (algorithmName, data, target) => {
         found: result.found,
         index: result.index
     };
+};
+
+const compareAllAlgorithms = async (type, data, target = null) => {
+    console.log(chalk.yellow(`\nComparing all ${type.toLowerCase()} algorithms...`));
+    const results = [];
+
+    const algorithms = type === 'Sorting' ? sortingAlgorithms : searchingAlgorithms;
+    for (const [name, algorithm] of Object.entries(algorithms)) {
+        const result = type === 'Sorting' 
+            ? await visualizeSortingAlgorithm(name, data)
+            : await visualizeSearchingAlgorithm(name, data, target);
+        results.push(result);
+    }
+
+    const table = new Table({
+        head: type === 'Sorting'
+            ? ['Algorithm', 'Time', 'Iterations', 'Memory Usage']
+            : ['Algorithm', 'Time', 'Iterations', 'Memory Usage', 'Found', 'Index'],
+        colWidths: type === 'Sorting'
+            ? [20, 20, 15, 20]
+            : [20, 20, 15, 20, 10, 10]
+    });
+
+    results.forEach(result => {
+        const row = [result.name, result.time, result.iterations, result.memory];
+        if (type === 'Searching') {
+            row.push(result.found ? 'Yes' : 'No', result.index);
+        }
+        table.push(row);
+    });
+
+    console.log(table.toString());
 };
 
 const main = async () => {
