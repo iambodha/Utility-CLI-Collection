@@ -183,6 +183,66 @@ const radixSort = (arr) => {
         return max;
     };
 
+    const bucketSort = (arr) => {
+        let iterations = 0;
+        const n = arr.length;
+        const min = Math.min(...arr);
+        const max = Math.max(...arr);
+        const range = (max - min) / n;
+        const buckets = Array.from({ length: n }, () => []);
+    
+        for (let i = 0; i < n; i++) {
+            const bucketIndex = Math.floor((arr[i] - min) / range);
+            if (bucketIndex === n) {
+                buckets[n - 1].push(arr[i]);
+            } else {
+                buckets[bucketIndex].push(arr[i]);
+            }
+            iterations++;
+        }
+    
+        for (let i = 0; i < n; i++) {
+            buckets[i].sort((a, b) => a - b);
+            iterations += buckets[i].length;
+        }
+    
+        let index = 0;
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < buckets[i].length; j++) {
+                arr[index++] = buckets[i][j];
+                iterations++;
+            }
+        }
+    
+        return { sorted: arr, iterations };
+    };
+
+const combSort = (arr) => {
+    let iterations = 0;
+    const n = arr.length;
+    let gap = n;
+    let swapped = true;
+
+    while (gap !== 1 || swapped === true) {
+        gap = Math.floor(gap / 1.3);
+        if (gap < 1) {
+            gap = 1;
+        }
+
+        swapped = false;
+
+        for (let i = 0; i < n - gap; i++) {
+            iterations++;
+            if (arr[i] > arr[i + gap]) {
+                [arr[i], arr[i + gap]] = [arr[i + gap], arr[i]];
+                swapped = true;
+            }
+        }
+    }
+
+    return { sorted: arr, iterations };
+};
+
 // Searching Algortihms
 const linearSearch = (arr, target) => {
     let iterations = 0;
