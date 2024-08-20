@@ -96,6 +96,57 @@ const binarySearch = (arr, target) => {
     return { found: false, index: -1, iterations };
 };
 
+const jumpSearch = (arr, target) => {
+    let iterations = 0;
+    const n = arr.length;
+    let step = Math.floor(Math.sqrt(n));
+    let prev = 0;
+
+    while (arr[Math.min(step, n) - 1] < target) {
+        iterations++;
+        prev = step;
+        step += Math.floor(Math.sqrt(n));
+        if (prev >= n) {
+            return { found: false, index: -1, iterations };
+        }
+    }
+
+    while (arr[prev] < target) {
+        iterations++;
+        prev++;
+        if (prev === Math.min(step, n)) {
+            return { found: false, index: -1, iterations };
+        }
+    }
+
+    if (arr[prev] === target) {
+        return { found: true, index: prev, iterations };
+    }
+
+    return { found: false, index: -1, iterations };
+};
+
+const interpolationSearch = (arr, target) => {
+    let iterations = 0;
+    let low = 0;
+    let high = arr.length - 1;
+
+    while (low <= high && target >= arr[low] && target <= arr[high]) {
+        iterations++;
+        if (low === high) {
+            if (arr[low] === target) return { found: true, index: low, iterations };
+            return { found: false, index: -1, iterations };
+        }
+
+        let pos = low + Math.floor(((high - low) / (arr[high] - arr[low])) * (target - arr[low]));
+
+        if (arr[pos] === target) return { found: true, index: pos, iterations };
+        if (arr[pos] < target) low = pos + 1;
+        else high = pos - 1;
+    }
+    return { found: false, index: -1, iterations };
+};
+
 const sleep = (ms = 2000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const welcome = async () => {
