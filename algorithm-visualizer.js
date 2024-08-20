@@ -138,6 +138,51 @@ const heapSort = (arr) => {
     return { sorted: arr, iterations };
 };
 
+const countingSort = (arr) => {
+    let iterations = 0;
+    const max = Math.max(...arr);
+    const min = Math.min(...arr);
+    const range = max - min + 1;
+    const count = new Array(range).fill(0);
+    const output = new Array(arr.length);
+
+    for (let i = 0; i < arr.length; i++) {
+        count[arr[i] - min]++;
+        iterations++;
+    }
+
+    for (let i = 1; i < count.length; i++) {
+        count[i] += count[i - 1];
+        iterations++;
+    }
+
+    for (let i = arr.length - 1; i >= 0; i--) {
+        output[count[arr[i] - min] - 1] = arr[i];
+        count[arr[i] - min]--;
+        iterations++;
+    }
+
+    for (let i = 0; i < arr.length; i++) {
+        arr[i] = output[i];
+        iterations++;
+    }
+
+    return { sorted: arr, iterations };
+};
+
+const radixSort = (arr) => {
+    let iterations = 0;
+    const getMax = (arr) => {
+        let max = arr[0];
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] > max) {
+                max = arr[i];
+            }
+            iterations++;
+        }
+        return max;
+    };
+
 // Searching Algortihms
 const linearSearch = (arr, target) => {
     let iterations = 0;
@@ -219,6 +264,26 @@ const interpolationSearch = (arr, target) => {
         else high = pos - 1;
     }
     return { found: false, index: -1, iterations };
+};
+
+const exponentialSearch = (arr, target) => {
+    let iterations = 0;
+    if (arr[0] === target) {
+        return { found: true, index: 0, iterations: 1 };
+    }
+
+    let i = 1;
+    while (i < arr.length && arr[i] <= target) {
+        iterations++;
+        i *= 2;
+    }
+
+    const binarySearchResult = binarySearch(arr.slice(i / 2, Math.min(i, arr.length)), target);
+    return {
+        found: binarySearchResult.found,
+        index: binarySearchResult.found ? i / 2 + binarySearchResult.index : -1,
+        iterations: iterations + binarySearchResult.iterations
+    };
 };
 
 const sleep = (ms = 2000) => new Promise((resolve) => setTimeout(resolve, ms));
