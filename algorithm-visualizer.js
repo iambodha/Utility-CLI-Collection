@@ -6,6 +6,68 @@ import figlet from 'figlet';
 import { createSpinner } from 'nanospinner';
 import Table from 'cli-table3';
 
+const sleep = (ms = 2000) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const welcome = async () => {
+    const title = 'Algorithm Visualizer';
+    figlet(title, (err, data) => {
+        console.log(gradient.pastel.multiline(data));
+    });
+    await sleep();
+    console.log(chalk.green(`
+Welcome to the ${chalk.blue('Enhanced Algorithm Visualizer CLI')}!
+This tool allows you to visualize and compare various sorting and searching algorithms.
+    `));
+};
+
+const sortingAlgorithms = {
+    'Bubble Sort': bubbleSort,
+    'Quick Sort': quickSort
+};
+
+const searchingAlgorithms = {
+    'Linear Search': linearSearch,
+    'Binary Search': binarySearch
+};
+
+const getAlgorithmType = async () => {
+    const answer = await inquirer.prompt({
+        name: 'type',
+        type: 'list',
+        message: 'Which type of algorithm would you like to visualize?',
+        choices: ['Sorting', 'Searching'],
+    });
+    return answer.type;
+};
+
+const getAlgorithm = async (type) => {
+    const algorithms = type === 'Sorting' ? sortingAlgorithms : searchingAlgorithms;
+    const answer = await inquirer.prompt({
+        name: 'algorithm',
+        type: 'list',
+        message: `Which ${type.toLowerCase()} algorithm would you like to visualize?`,
+        choices: [...Object.keys(algorithms), 'Compare All'],
+    });
+    return answer.algorithm;
+};
+
+const getDataSize = async () => {
+    const answer = await inquirer.prompt({
+        name: 'size',
+        type: 'input',
+        message: 'Enter the size of the data (number of elements):',
+        validate: (input) => {
+            const num = parseInt(input);
+            return !isNaN(num) && num > 0 ? true : 'Please enter a valid positive number.';
+        },
+    });
+    return parseInt(answer.size);
+};
+
+const generateRandomArray = (size) => {
+    return Array.from({ length: size }, () => Math.floor(Math.random() * 1000)).sort((a, b) => a - b);
+};
+
 const main = async () => {
     await welcome();
     const algorithmType = await getAlgorithmType();
