@@ -413,6 +413,76 @@ const exponentialSearch = (arr, target) => {
     };
 };
 
+const fibonacciSequence = (n) => {
+    let iterations = 0;
+    const memo = new Array(n + 1).fill(0);
+    memo[0] = 0;
+    memo[1] = 1;
+
+    for (let i = 2; i <= n; i++) {
+        memo[i] = memo[i - 1] + memo[i - 2];
+        iterations++;
+    }
+
+    return { result: memo[n], iterations };
+};
+
+const knapsackProblem = (weights, values, capacity) => {
+    let iterations = 0;
+    const n = weights.length;
+    const dp = new Array(n + 1).fill(0).map(() => new Array(capacity + 1).fill(0));
+
+    for (let i = 1; i <= n; i++) {
+        for (let w = 1; w <= capacity; w++) {
+            iterations++;
+            if (weights[i - 1] <= w) {
+                dp[i][w] = Math.max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+            } else {
+                dp[i][w] = dp[i - 1][w];
+            }
+        }
+    }
+
+    return { result: dp[n][capacity], iterations };
+};
+
+const longestCommonSubsequence = (str1, str2) => {
+    let iterations = 0;
+    const m = str1.length;
+    const n = str2.length;
+    const dp = new Array(m + 1).fill(0).map(() => new Array(n + 1).fill(0));
+
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            iterations++;
+            if (str1[i - 1] === str2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+
+    return { result: dp[m][n], iterations };
+};
+
+const coinChangeProblem = (coins, amount) => {
+    let iterations = 0;
+    const dp = new Array(amount + 1).fill(Infinity);
+    dp[0] = 0;
+
+    for (let i = 1; i <= amount; i++) {
+        for (const coin of coins) {
+            iterations++;
+            if (coin <= i) {
+                dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+            }
+        }
+    }
+
+    return { result: dp[amount] === Infinity ? -1 : dp[amount], iterations };
+};
+
 const sleep = (ms = 2000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const welcome = async () => {
