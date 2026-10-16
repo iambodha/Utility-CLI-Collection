@@ -1,5 +1,7 @@
 # 🛠️ JS CLI Toolbox
 
+> **Canonical CLI repository.** This is the main home for this JavaScript CLI collection. Use this repository for future development and new issues.
+
 A collection of useful command-line tools built with JavaScript.
 
 ## 📋 Table of Contents
