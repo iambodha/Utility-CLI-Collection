@@ -1,0 +1,11 @@
+node_modules/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+# Data written by the interactive tools
+cheatsheets.json
+calendar_events.json
+finance_data.json
+notes.json
